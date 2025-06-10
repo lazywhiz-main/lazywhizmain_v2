@@ -5,95 +5,84 @@ import Link from 'next/link';
 
 export const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-white py-16">
-      <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-4 gap-12">
-          <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="text-2xl font-light">
+    <footer className="footer-section">
+      <div className="footer-content">
+        <div className="footer-main">
+          <div className="footer-brand">
+            <Link href="/" className="footer-logo">
               LazyWhiz
             </Link>
-            <p className="mt-4 text-gray-400 text-sm">
+            <p className="footer-description">
               決めることへの伴走をテーマに、プロダクトマネジメント、ブランディング、Web制作のサポートを提供しています。
             </p>
+            <div className="footer-accent-line"></div>
           </div>
 
-          <div>
-            <h3 className="text-lg font-medium mb-4">サービス</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/service#pdm"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  PdM支援
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/service#branding"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  ブランド・言語化支援
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/service#web"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  軽やかなWeb制作
-                </Link>
-              </li>
-            </ul>
-          </div>
+          <div className="footer-nav-group">
+            <div className="footer-nav-section">
+              <h3 className="footer-nav-title">サービス</h3>
+              <ul className="footer-nav-list">
+                <li>
+                  <Link href="/service#pdm" className="footer-nav-link">
+                    PdM支援
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/service#branding" className="footer-nav-link">
+                    ブランド・言語化支援
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/service#web" className="footer-nav-link">
+                    軽やかなWeb制作
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          <div>
-            <h3 className="text-lg font-medium mb-4">ナビゲーション</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/about"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/articles"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Articles
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  Contact
-                </Link>
-              </li>
-            </ul>
-          </div>
+            <div className="footer-nav-section">
+              <h3 className="footer-nav-title">ナビゲーション</h3>
+              <ul className="footer-nav-list">
+                <li>
+                  <Link href="/about" className="footer-nav-link">
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/articles" className="footer-nav-link">
+                    Articles
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className="footer-nav-link">
+                    Contact
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          <div>
-            <h3 className="text-lg font-medium mb-4">お問い合わせ</h3>
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="mailto:contact@lazywhiz.com"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  contact@lazywhiz.com
-                </a>
-              </li>
-            </ul>
+            <div className="footer-nav-section">
+              <h3 className="footer-nav-title">お問い合わせ</h3>
+              <ul className="footer-nav-list">
+                <li>
+                  <a href="mailto:contact@lazywhiz.com" className="footer-nav-link footer-email">
+                    contact@lazywhiz.com
+                  </a>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400 text-sm">
-          <p>&copy; {new Date().getFullYear()} LazyWhiz. All rights reserved.</p>
+        <div className="footer-bottom">
+          <div className="footer-copyright">
+            <p>&copy; {new Date().getFullYear()} LazyWhiz. All rights reserved.</p>
+          </div>
+          <div className="footer-decorative-elements">
+            <div className="footer-dot footer-dot-1"></div>
+            <div className="footer-dot footer-dot-2"></div>
+            <div className="footer-dot footer-dot-3"></div>
+          </div>
         </div>
       </div>
     </footer>
