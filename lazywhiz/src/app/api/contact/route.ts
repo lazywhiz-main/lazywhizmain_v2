@@ -11,6 +11,10 @@ export async function POST(request: Request) {
 
     // 管理者宛てメール
     const adminEmail = process.env.ADMIN_EMAIL || process.env.GMAIL_USER;
+    if (!adminEmail) {
+      throw new Error('管理者メールアドレスが設定されていません');
+    }
+    
     const subject = `[LazyWhiz] お問い合わせ: ${name}様`;
     const text = `
 名前: ${name}
