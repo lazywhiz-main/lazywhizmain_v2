@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAZYWHIZ 記事詳細ページ - カテゴリ別デザイン完全版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Noto Sans JP', sans-serif;
+            line-height: 1.6;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        /* ========================================
+           カラーパレット定義（変更対象）
+        ======================================== */
+        :root {
+            /* 基本カラー（変更しない） */
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-400: #ced4da;
+            --gray-500: #adb5bd;
+            --gray-600: #6c757d;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
+            
+            /* テーマカラー（カテゴリ別に変更する） */
+            --primary-color: #FF6B6B;  /* Insight: coral, Tools: #4A90E2, Case: #4ECDC4, AI: #9B59B6 */
+            --primary-light: rgba(255, 107, 107, 0.1);  /* 上記カラーのrgba(r,g,b,0.1) */
+            --primary-medium: rgba(255, 107, 107, 0.2); /* 上記カラーのrgba(r,g,b,0.2) */
+            --primary-dark: #e85a5a;  /* Insight: #e85a5a, Tools: #3a7bc8, Case: #3cb3aa, AI: #8e44ad */
+        }
+
+        /* ========================================
+           ページ選択UI
+        ======================================== */
+        .page-selector {
+            background: white;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .selector-title {
+            font-size: 24px;
+            font-weight: 200;
+            margin-bottom: 20px;
+            color: var(--gray-800);
+        }
+
+        .selector-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .selector-btn {
+            padding: 12px 24px;
+            border: 2px solid transparent;
+            background: var(--gray-100);
+            color: var(--gray-700);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .selector-btn.active {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .selector-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary-color);
+        }
+
+        /* カテゴリ別のボタンスタイル */
+        .btn-insight { --primary-color: #FF6B6B; }
+        .btn-tools { --primary-color: #4A90E2; }
+        .btn-case { --primary-color: #4ECDC4; }
+        .btn-ai { --primary-color: #9B59B6; }
+
+        /* ========================================
+           記事詳細ページのスタイル
+        ======================================== */
+        .article-page {
+            display: none;
+        }
+
+        .article-page.active {
+            display: block;
+        }
+
+        /* ヘッダー */
+        .header {
+            background: rgba(248, 249, 250, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            border-bottom: 1px solid var(--gray-300);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 200;
+            letter-spacing: 2px;
+            color: var(--gray-800);
+            position: relative;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #FF6B6B, #4A90E2, #4ECDC4);
+        }
+
+        .nav {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-item {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-size: 15px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-item:hover {
+            color: var(--primary-color);
+        }
+
+        /* パンくずナビ */
+        .breadcrumb {
+            background: white;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .breadcrumb-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 40px;
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .breadcrumb a {
+            color: var(--gray-600);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--primary-color);
+        }
+
+        /* 記事ヘッダー */
+        .article-header {
+            background: white;
+            padding: 60px 0 40px;
+            position: relative;
+        }
+
+        .article-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-color);
+        }
+
+        .article-header-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .article-tag {
+            background: var(--primary-color);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .article-date, .article-read-time {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .article-title {
+            font-size: 42px;
+            font-weight: 200;
+            line-height: 1.3;
+            color: var(--gray-800);
+            margin-bottom: 20px;
+        }
+
+        .article-subtitle {
+            font-size: 18px;
+            color: var(--gray-600);
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        /* 記事本文 */
+        .article-content {
+            background: white;
+            margin-bottom: 80px;
+        }
+
+        .article-content-inner {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 40px 80px;
+        }
+
+        .article-body {
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--gray-700);
+        }
+
+        /* 見出しスタイル */
+        .article-body h1 {
+            font-size: 36px;
+            font-weight: 300;
+            color: var(--gray-800);
+            margin: 60px 0 32px;
+            position: relative;
+            padding-bottom: 16px;
+        }
+
+        .article-body h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: var(--primary-color);
+        }
+
+        .article-body h2 {
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--gray-800);
+            margin: 50px 0 24px;
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .article-body h2::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .article-body h3 {
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--gray-800);
+            margin: 40px 0 20px;
+            position: relative;
+        }
+
+        .article-body h3::before {
+            content: '▶';
+            color: var(--primary-color);
+            margin-right: 8px;
+            font-size: 14px;
+        }
+
+        /* 段落とリスト */
+        .article-body p {
+            margin-bottom: 24px;
+        }
+
+        .article-body ul, .article-body ol {
+            margin: 24px 0;
+            padding-left: 24px;
+        }
+
+        .article-body li {
+            margin-bottom: 8px;
+        }
+
+        .article-body ul li::marker {
+            color: var(--primary-color);
+        }
+
+        .article-body ol li::marker {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* 引用 */
+        .article-body blockquote {
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary-color);
+            padding: 24px 32px;
+            margin: 32px 0;
+            font-style: italic;
+            color: var(--gray-700);
+            border-radius: 0 6px 6px 0;
+            position: relative;
+        }
+
+        .article-body blockquote::before {
+            content: '"';
+            font-size: 48px;
+            color: var(--primary-color);
+            position: absolute;
+            top: 10px;
+            left: 8px;
+            line-height: 1;
+        }
+
+        .article-body blockquote p {
+            margin-left: 32px;
+            margin-bottom: 0;
+        }
+
+        /* コードスタイル */
+        .article-body code {
+            background: var(--gray-100);
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            color: var(--primary-color);
+            border: 1px solid var(--gray-300);
+        }
+
+        .article-body pre {
+            background: var(--gray-800);
+            color: white;
+            padding: 24px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 32px 0;
+            position: relative;
+        }
+
+        .article-body pre::before {
+            content: 'CODE';
+            position: absolute;
+            top: 8px;
+            right: 16px;
+            font-size: 12px;
+            color: var(--gray-500);
+            font-family: sans-serif;
+        }
+
+        .article-body pre code {
+            background: none;
+            color: white;
+            padding: 0;
+            border: none;
+        }
+
+        /* テーブル */
+        .article-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .article-body th {
+            background: var(--primary-color);
+            color: white;
+            padding: 16px;
+            text-align: left;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .article-body td {
+            padding: 16px;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 14px;
+        }
+
+        .article-body tr:nth-child(even) td {
+            background: var(--gray-100);
+        }
+
+        .article-body tr:hover td {
+            background: var(--primary-light);
+        }
+
+        /* ハイライトボックス */
+        .highlight-box {
+            background: var(--primary-light);
+            border: 1px solid var(--primary-medium);
+            padding: 24px;
+            margin: 32px 0;
+            border-radius: 6px;
+            position: relative;
+        }
+
+        .highlight-box::before {
+            content: '💡';
+            position: absolute;
+            top: -8px;
+            left: 24px;
+            background: white;
+            padding: 0 8px;
+            font-size: 16px;
+        }
+
+        .highlight-box h4 {
+            color: var(--primary-color);
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        /* 関連記事 */
+        .related-articles {
+            background: var(--gray-100);
+            padding: 80px 0;
+        }
+
+        .related-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .related-title {
+            font-size: 28px;
+            font-weight: 200;
+            color: var(--gray-800);
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .related-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 2px;
+            background: var(--primary-color);
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .related-card {
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-top: 4px solid var(--gray-300);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .related-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            border-top-color: var(--primary-color);
+        }
+
+        .related-card-content {
+            padding: 24px;
+        }
+
+        .related-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            background: var(--gray-200);
+            color: var(--gray-600);
+            font-size: 11px;
+            border-radius: 3px;
+            margin-bottom: 12px;
+        }
+
+        .related-card-title {
+            font-size: 16px;
+            font-weight: 400;
+            margin-bottom: 8px;
+            color: var(--gray-800);
+            line-height: 1.4;
+        }
+
+        .related-excerpt {
+            font-size: 14px;
+            color: var(--gray-600);
+            line-height: 1.5;
+        }
+
+        /* CTAセクション */
+        .cta-section {
+            background: var(--gray-800);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-color);
+        }
+
+        .cta-content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .cta-title {
+            font-size: 28px;
+            font-weight: 200;
+            margin-bottom: 16px;
+        }
+
+        .cta-subtitle {
+            font-size: 16px;
+            color: var(--gray-400);
+            margin-bottom: 32px;
+            font-weight: 300;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 16px 32px;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 400;
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 1024px) {
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content,
+            .breadcrumb-content,
+            .article-header-content,
+            .article-content-inner,
+            .related-content,
+            .cta-content {
+                padding: 0 20px;
+            }
+            
+            .nav {
+                display: none;
+            }
+            
+            .article-title {
+                font-size: 32px;
+            }
+            
+            .article-body h1 {
+                font-size: 28px;
+            }
+            
+            .article-body h2 {
+                font-size: 24px;
+            }
+            
+            .selector-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ページ選択UI -->
+    <div class="page-selector">
+        <h1 class="selector-title">記事カテゴリ別デザインサンプル</h1>
+        <div class="selector-buttons">
+            <button class="selector-btn btn-insight active" onclick="showArticle('insight')">
+                Insight（思考法）- コーラル
+            </button>
+            <button class="selector-btn btn-tools" onclick="showArticle('tools')">
+                Tools（ツール）- ブルー
+            </button>
+            <button class="selector-btn btn-case" onclick="showArticle('case')">
+                Case（事例）- グリーン
+            </button>
+            <button class="selector-btn btn-ai" onclick="showArticle('ai')">
+                AI & Apps（技術）- パープル
+            </button>
+        </div>
+    </div>
+
+    <!-- Insight記事ページ（コーラル） -->
+    <div id="insight" class="article-page active">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">LAZYWHIZ</div>
+                <nav class="nav">
+                    <a href="#" class="nav-item">Home</a>
+                    <a href="#" class="nav-item">About</a>
+                    <a href="#" class="nav-item">Service</a>
+                    <a href="#" class="nav-item">Articles</a>
+                    <a href="#" class="nav-item">Contact</a>
+                </nav>
+            </div>
+        </header>
+
+        <nav class="breadcrumb">
+            <div class="breadcrumb-content">
+                <a href="#">Home</a> › <a href="#">Articles</a> › <a href="#">Insight</a> › 決断疲れを避ける3つの思考法
+            </div>
+        </nav>
+
+        <main>
+            <header class="article-header">
+                <div class="article-header-content">
+                    <div class="article-meta">
+                        <span class="article-tag">Insight</span>
+                        <span class="article-date">2025.01.15</span>
+                        <span class="article-read-time">5 min read</span>
+                    </div>
+                    <h1 class="article-title">決断疲れを避ける3つの思考法</h1>
+                    <p class="article-subtitle">
+                        日々の小さな決断から重要な選択まで、エネルギーを無駄にしない考え方をご紹介。認知的負荷を軽減し、本当に大切な決断に集中するための手法をまとめました。
+                    </p>
+                </div>
+            </header>
+
+            <article class="article-content">
+                <div class="article-content-inner">
+                    <div class="article-body">
+                        <p>現代人は1日に約35,000回の決断をしていると言われています。朝起きてから何を着るか、何を食べるか、どの道を通るか...これらの小さな選択が積み重なることで、私たちの決断力は徐々に消耗していきます。</p>
+
+                        <h1>決断疲れとは何か</h1>
+
+                        <p>決断疲れ（Decision Fatigue）は、継続的な意思決定により精神的リソースが枯渇する現象です。この概念は心理学者のロイ・バウマイスターによって提唱されました。</p>
+
+                        <blockquote>
+                            <p>「決断の質は、決断の数に反比例する。重要な判断は、エネルギーが充実している時に行うべきだ。」</p>
+                        </blockquote>
+
+                        <h2>1. ルーティン化による選択の自動化</h2>
+
+                        <p>最も効果的な方法の一つは、日常的な決断をルーティン化することです。以下のコード例のように、選択肢を事前に定義しておくことが重要です：</p>
+
+                        <pre><code>const morningRoutine = {
+  wakeUpTime: "6:00",
+  breakfast: ["オートミール", "バナナ", "コーヒー"],
+  outfit: "business_casual_set_A",
+  commute: "train_route_1"
+};
+
+// 毎朝の選択を自動化
+function startDay() {
+  return morningRoutine;
+}</code></pre>
+
+                        <h3>ルーティン化のメリット</h3>
+
+                        <ul>
+                            <li>認知的負荷の軽減</li>
+                            <li>時間の節約</li>
+                            <li>ストレスの減少</li>
+                            <li>重要な決断への集中力向上</li>
+                        </ul>
+
+                        <div class="highlight-box">
+                            <h4>実践のポイント</h4>
+                            <p>完璧を求めすぎず、80%の決断をルーティン化することで、重要な判断に集中できるようになります。残り20%の決断に全力を注ぎましょう。</p>
+                        </div>
+
+                        <h2>2. タイムボックス思考の活用</h2>
+
+                        <p>決断に制限時間を設けることで、分析麻痺を防ぎます。以下の表は、決断の重要度別の推奨時間配分です：</p>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>重要度</th>
+                                    <th>決断例</th>
+                                    <th>推奨時間</th>
+                                    <th>判断基準</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>低</td>
+                                    <td>昼食のメニュー</td>
+                                    <td>1-3分</td>
+                                    <td>直感重視</td>
+                                </tr>
+                                <tr>
+                                    <td>中</td>
+                                    <td>週末の予定</td>
+                                    <td>10-15分</td>
+                                    <td>簡単な比較検討</td>
+                                </tr>
+                                <tr>
+                                    <td>高</td>
+                                    <td>転職・引越し</td>
+                                    <td>数日〜数週間</td>
+                                    <td>詳細な分析と検証</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h3>タイムボックスの設定方法</h3>
+
+                        <ol>
+                            <li>決断の重要度を3段階で評価</li>
+                            <li>各段階に応じた制限時間を設定</li>
+                            <li>タイマーを使用して時間を管理</li>
+                            <li>時間内で最善の判断を下す</li>
+                        </ol>
+
+                        <h2>3. エネルギー管理による最適化</h2>
+
+                        <p>決断力は一日の中でも変動します。この自然なリズムを活用することで、重要な決断の質を向上させることができます。</p>
+
+                        <h3>一日の決断力の変化</h3>
+
+                        <ul>
+                            <li><strong>午前中（6:00-10:00）</strong>：最高レベル - 重要な決断に最適</li>
+                            <li><strong>午後前半（10:00-14:00）</strong>：高レベル - 中程度の決断に適している</li>
+                            <li><strong>午後後半（14:00-18:00）</strong>：中レベル - ルーティン作業に集中</li>
+                            <li><strong>夜間（18:00-22:00）</strong>：低レベル - 重要な決断は避ける</li>
+                        </ul>
+
+                        <p>また、<code>血糖値</code>の低下も判断力に影響を与えることが研究で明らかになっています。重要な決断の前には適切な食事を取ることも効果的です。</p>
+
+                        <blockquote>
+                            <p>「午前中の30分は、午後の2時間に匹敵する決断の質を生み出すことができる。」</p>
+                        </blockquote>
+
+                        <h1>まとめ：決断力を戦略的に使う</h1>
+
+                        <p>決断疲れを避けるための3つの思考法をご紹介しました。これらの手法を組み合わせることで、限られた決断力を戦略的に使い、より良い選択を継続的に行えるようになります。</p>
+
+                        <div class="highlight-box">
+                            <h4>今日から始められるアクション</h4>
+                            <ul>
+                                <li>明日の朝のルーティンを3つ決める</li>
+                                <li>重要な決断を午前中にスケジュールする</li>
+                                <li>小さな決断に5分以上かけない</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <section class="related-articles">
+                <div class="related-content">
+                    <h2 class="related-title">関連記事</h2>
+                    <div class="related-grid">
+                        <a href="#" class="related-card">
+                            <div class="related-card-content">
+                                <span class="related-tag">Tools</span>
+                                <h3 class="related-card-title">意思決定フレームワーク集</h3>
+                                <p class="related-excerpt">効果的な判断を下すための実践的なツール...</p>
+                            </div>
+                        </a>
+                        <a href="#" class="related-card">
+                            <div class="related-card-content">
+                                <span class="related-tag">Case</span>
+                                <h3 class="related-card-title">スタートアップ CEOの決断術</h3>
+                                <p class="related-excerpt">不確実性の中で素早く決断する方法...</p>
+                            </div>
+                        </a>
+                        <a href="#" class="related-card">
+                            <div class="related-card-content">
+                                <span class="related-tag">Insight</span>
+                                <h3 class="related-card-title">認知バイアスを避ける思考法</h3>
+                                <p class="related-excerpt">客観的な判断力を向上させるテクニック...</p>
+                            </div>
+                        </a>
+                    </div>

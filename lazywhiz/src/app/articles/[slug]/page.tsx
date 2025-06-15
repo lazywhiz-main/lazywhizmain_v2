@@ -20,6 +20,24 @@ export default function ArticlePage({ params }: ArticlePageProps) {
 
   // Markdownライクなコンテンツを簡単なHTMLに変換する関数
   const formatContent = (content: string) => {
+    // テーブルブロックを検出して一括変換
+    content = content.replace(/((?:^\|.*\|\n?)+)/gm, (tableBlock) => {
+      // 各行を分割
+      const rows = tableBlock.trim().split('\n').filter(Boolean);
+      if (rows.length < 2) return tableBlock; // テーブルでなければそのまま
+      const htmlRows = rows.map((row, i) => {
+        const cells = row.split('|').slice(1, -1).map(cell => cell.trim());
+        if (i === 0) {
+          return `<tr>${cells.map(cell => `<th>${cell}</th>`).join('')}</tr>`;
+        } else if (cells.every(cell => /^-+$/.test(cell))) {
+          return '';
+        } else {
+          return `<tr>${cells.map(cell => `<td>${cell}</td>`).join('')}</tr>`;
+        }
+      }).filter(Boolean).join('');
+      return `<div class="article-table-wrapper"><table class="article-table">${htmlRows}</table></div>`;
+    });
+
     return content
       // コードブロック処理（三連バッククォート）
       .replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
@@ -35,21 +53,6 @@ export default function ArticlePage({ params }: ArticlePageProps) {
       .replace(/^## (.+)$/gm, '<h2 class="article-h2">$1</h2>')
       // 太字（**text**）
       .replace(/\*\*(.+?)\*\*/g, '<strong class="article-strong">$1</strong>')
-      // テーブル処理を修正
-      .replace(/\|(.+)\|/g, (match, content) => {
-        const cells = content.split('|').map((cell: string) => cell.trim()).filter((cell: string) => cell);
-        if (cells.every((cell: string) => cell.match(/^-+$/))) {
-          return ''; // ヘッダー区切り行は無視
-        }
-        const isHeader = match.includes('項目') || match.includes('使用ツール');
-        if (isHeader) {
-          return `<tr class="article-table-header">${cells.map((cell: string) => `<th>${cell}</th>`).join('')}</tr>`;
-        } else {
-          return `<tr>${cells.map((cell: string) => `<td>${cell}</td>`).join('')}</tr>`;
-        }
-      })
-      // テーブル全体をラップ
-      .replace(/(<tr.*?>.*?<\/tr>[\s\S]*?<tr.*?>.*?<\/tr>)/g, '<div class="article-table-wrapper"><table class="article-table">$1</table></div>')
       // 引用処理（> で始まる行）
       .replace(/^> (.+)$/gm, '<blockquote class="article-quote">$1</blockquote>')
       // 重要な箇所のハイライト（!で始まる段落）

@@ -65,8 +65,8 @@ export const Footer = () => {
               <h3 className="footer-nav-title">お問い合わせ</h3>
               <ul className="footer-nav-list">
                 <li>
-                  <a href="mailto:contact@lazywhiz.com" className="footer-nav-link footer-email">
-                    contact@lazywhiz.com
+                  <a href="mailto:contact@lazywhiz.io" className="footer-nav-link footer-email">
+                    contact@lazywhiz.io
                   </a>
                 </li>
               </ul>
