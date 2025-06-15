@@ -9,9 +9,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '必須項目が入力されていません' }, { status: 400 });
     }
 
+    // 環境変数の確認
+    console.log('Environment check:', {
+      hasGoogleClientId: !!process.env.GOOGLE_CLIENT_ID,
+      hasGoogleClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+      hasGoogleRefreshToken: !!process.env.GOOGLE_REFRESH_TOKEN,
+      hasGmailUser: !!process.env.GMAIL_USER,
+      hasAdminEmail: !!process.env.ADMIN_EMAIL
+    });
+
     // 管理者宛てメール
     const adminEmail = process.env.ADMIN_EMAIL || process.env.GMAIL_USER;
     if (!adminEmail) {
+      console.error('Admin email not configured');
       throw new Error('管理者メールアドレスが設定されていません');
     }
     
@@ -23,8 +33,15 @@ export async function POST(request: Request) {
 カテゴリ: ${category || '-'}
 メッセージ:\n${message}
 `;
+    
+    console.log('Attempting to send email to:', adminEmail);
     const result = await sendEmail(adminEmail, subject, text);
-    if (!result.success) throw new Error('メール送信に失敗しました');
+    console.log('Email send result:', result);
+    
+    if (!result.success) {
+      console.error('Email send failed:', result.error);
+      throw new Error(`メール送信に失敗しました: ${result.error}`);
+    }
 
     // 自動返信
     const autoReplySubject = '【LazyWhiz】お問い合わせありがとうございます';
@@ -37,11 +54,17 @@ ${message}
 ---
 内容を確認次第、担当者よりご連絡いたします。
 -- LazyWhiz`;
-    await sendEmail(email, autoReplySubject, autoReplyText);
+    
+    console.log('Attempting to send auto-reply to:', email);
+    const autoReplyResult = await sendEmail(email, autoReplySubject, autoReplyText);
+    console.log('Auto-reply result:', autoReplyResult);
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Contact API Error:', error);
-    return NextResponse.json({ error: 'メール送信に失敗しました' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'メール送信に失敗しました',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 } 
